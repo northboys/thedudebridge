@@ -1,0 +1,7 @@
+version: "3"
+services:
+  thedudebridge:
+    container_name: skilltestdevops01-l-cnt-thedudebridge-tdev
+    image: izalul/thedudebridge:latest
+    ports:
+      - 80:5758
