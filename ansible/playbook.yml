@@ -9,9 +9,12 @@
         version: main
 
     - name: Build Docker image
-      command: docker build -t izalul/thedudebridge:latest /home/engineer/izalul/thedudebridge
-      args:
-        creates: /home/engineer/izalul/thedudebridge/Dockerfile
+      docker_image:
+        name: izalul/thedudebridge:latest
+        source: build
+        build:
+          path: /home/engineer/izalul/thedudebridge
+      register: build_result
 
     - name: Check if Docker image exists
       command: docker images izalul/thedudebridge:latest
@@ -23,9 +26,8 @@
         var: docker_image_check.stdout_lines
 
     - name: Start Docker containers
-      command: docker-compose -f /home/engineer/izalul/docker-compose.yml up -d
-      args:
-        creates: /home/engineer/izalul/docker-compose.yml
+      command: docker compose -f /home/engineer/izalul/thedudebridge/docker-compose.yml up -d
+
     - name: Wait for application to be healthy
       wait_for:
         host: "{{ ansible_host }}"
