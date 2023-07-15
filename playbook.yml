@@ -1,0 +1,42 @@
+- name: Clone and Deploy TheDudeBridge
+  hosts: all
+  become: true
+  tasks:
+    - name: Clone TheDudeBridge repository
+      git:
+        repo: https://github.com/northboys/thedudebridge.git
+        dest: /home/engineer/izalul/thedudebridge
+        version: main
+
+    - name: Build Docker image
+      command: docker build -t izalul/thedudebridge:latest /home/engineer/izalul/thedudebridge
+      args:
+        creates: /home/engineer/izalul/thedudebridge/Dockerfile
+
+    - name: Check if Docker image exists
+      command: docker images izalul/thedudebridge:latest
+      register: docker_image_check
+      ignore_errors: true
+
+    - name: Display Docker image information
+      debug:
+        var: docker_image_check.stdout_lines
+
+    - name: Start Docker containers
+      command: docker-compose -f /home/engineer/izalul/docker-compose.yml up -d
+      args:
+        creates: /home/engineer/izalul/docker-compose.yml
+    - name: Wait for application to be healthy
+      wait_for:
+        host: "{{ ansible_host }}"
+        port: 80
+        state: started
+        timeout: 60
+
+    - name: Check application response
+      command: curl -vs http://{{ ansible_host }}:80
+      register: curl_output
+
+    - name: Display application response
+      debug:
+        var: curl_output.stdout
